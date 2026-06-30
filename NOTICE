@@ -1,0 +1,13 @@
+Atlas Protocol (ALP) — the Atlas SDK
+Copyright 2026 Aidan Yu / Atlas
+
+This product includes software developed as the open protocol layer of the
+Atlas autonomous-lab framework.
+
+This repository contains ONLY the open protocol contract (the `atlas_protocol`
+package). The Atlas engine — including the verification-firewall implementation,
+the per-lab compounding ledger, and physical-instrument bridges — is a separate
+work and is not licensed under this repository.
+
+Licensed under the Apache License, Version 2.0. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
