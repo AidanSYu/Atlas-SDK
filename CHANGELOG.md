@@ -7,6 +7,19 @@ added/changed; package versions track releases.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.0.1] — 2026-07-06
+
+### Fixed
+- **atlas-protocol**: Windows `file://` asset sources with the drive letter in
+  the URL authority (`file://C:/mirror/model.bin` — the form the module docs
+  advertise) lost the drive during parsing and resolved against the current
+  working drive. `_fetch_file` now rejoins authority + path and treats a
+  `localhost` authority as empty (RFC 8089). Caught by the CI Windows runners,
+  whose workspace lives on `D:`; regression test added for the RFC
+  `file:///C:/...` form too.
+- Packages bumped in lockstep to 1.0.1; `atlas-sdk` now requires
+  `atlas-protocol>=1.0.1`.
+
 ## [1.0.0] — 2026-07-06
 
 The repo is now the **Atlas SDK monorepo**: `protocol/` ships `atlas-protocol`

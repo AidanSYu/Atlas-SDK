@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-sdk"
-version = "1.0.0"
+version = "1.0.1"
 description = "Atlas SDK toolkit — the `atlas` CLI for building, signing, and verifying .atlas plugin packages"
 readme = "README.md"
 license = "Apache-2.0"
@@ -24,7 +24,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-protocol>=1.0.0,<2",
+    "atlas-protocol>=1.0.1,<2",
     "cryptography>=42.0",
     "pydantic>=2.0",
 ]

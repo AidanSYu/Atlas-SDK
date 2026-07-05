@@ -47,6 +47,18 @@ def test_local_mirror_resolves_offline(cache, tmp_path):
     assert hashlib.sha256(resolved.read_bytes()).hexdigest() == sha
 
 
+def test_rfc_file_uri_source_resolves(cache, tmp_path):
+    # Path.as_uri() emits the RFC form (file:///C:/x on Windows, file:///home/x
+    # elsewhere); the two-slash file://C:/x form is covered by the tests above.
+    # Regression: the drive letter must survive urlparse on every platform even
+    # when the current working drive differs (the CI-runner case).
+    blob, sha = _blob(tmp_path, "model.bin")
+    ref = _ref("model.bin", sha, [blob.as_uri()])
+    resolved = resolve_asset(ref)
+    assert resolved.is_file()
+    assert hashlib.sha256(resolved.read_bytes()).hexdigest() == sha
+
+
 def test_cache_hit_skips_fetch(cache, tmp_path):
     blob, sha = _blob(tmp_path, "model.bin")
     ref = _ref("model.bin", sha, [f"file://{blob.as_posix()}"])

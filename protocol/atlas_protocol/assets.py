@@ -124,11 +124,20 @@ def _fetch_file(src: str, dest: Path) -> bool:
     """A ``file://`` or bare local-path source - copy from a local mirror."""
     parsed = urlparse(src)
     if parsed.scheme in ("file", ""):
-        local = Path(parsed.path if parsed.scheme == "file" else src)
-        # On Windows a file:// path can arrive as /D:/x - strip the leading slash.
-        if os.name == "nt" and parsed.scheme == "file" and local.as_posix().startswith("/") \
-                and len(local.as_posix()) > 2 and local.as_posix()[2] == ":":
-            local = Path(local.as_posix()[1:])
+        if parsed.scheme == "file":
+            # RFC form file:///C:/x parses to path='/C:/x'; the Windows-friendly
+            # file://C:/x puts the drive in netloc ('C:'), so rejoin netloc+path
+            # or the drive is silently dropped and the path resolves against the
+            # current drive. A 'localhost' authority is empty per RFC 8089.
+            netloc = "" if parsed.netloc.lower() == "localhost" else parsed.netloc
+            raw = netloc + parsed.path
+        else:
+            raw = src
+        # On Windows an RFC file:// path arrives as /C:/x - strip the leading slash.
+        if os.name == "nt" and parsed.scheme == "file" and raw.startswith("/") \
+                and len(raw) > 2 and raw[2] == ":":
+            raw = raw[1:]
+        local = Path(raw)
         if local.is_file():
             shutil.copyfile(local, dest)
             return True

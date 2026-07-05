@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-protocol"
-version = "1.0.0"
+version = "1.0.1"
 description = "Atlas Protocol (ALP) — the open contract for autonomous-lab software: capability manifests, the actor-firewall envelope, goals, transfer, and the signed .atlas container format."
 readme = "README.md"
 license = "Apache-2.0"

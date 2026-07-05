@@ -6,7 +6,7 @@ This package adds the CLI, manifest validation, and scaffolding templates.
 """
 from __future__ import annotations
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from atlas_sdk.format import (  # noqa: F401
     AtlasFormatError,
