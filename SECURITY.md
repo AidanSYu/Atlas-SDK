@@ -1,9 +1,11 @@
 # Security Policy
 
-Atlas Protocol is the contract for a system whose entire value rests on results
-being trustworthy. The protocol's security properties are therefore part of its
-correctness. We especially want to hear about any way to defeat one of these
-invariants:
+The Atlas SDK is the contract and toolchain for a system whose entire value
+rests on results being trustworthy. Its security properties are therefore part
+of its correctness. We especially want to hear about any way to defeat one of
+these invariants:
+
+**Contract invariants (`atlas-protocol` models):**
 
 - **Actor firewall bypass** — a path that lets `Actor.ATLAS` (the cognition
   brain) author a `Measurement`, mint a number with ledger authority, or actuate.
@@ -15,6 +17,22 @@ invariants:
   `schema_hash()` treats as equal (a false-negative in the backward-compat gate),
   or a canonicalization that rejects a valid schema.
 
+**Container & trust invariants (`.atlas` format, signing, trust, assets):**
+
+- **Signature forgery or malleability** — any modified `.atlas` (payload,
+  manifest, or signature block) that still verifies, or an unsigned package
+  that reports as signed.
+- **Trust-tier escalation** — a publisher key resolving to a higher
+  `TrustLevel` than the trust store grants (e.g. unknown → trusted, or a
+  **revoked** key still resolving as trusted), or a private key that can be
+  extracted from anything this repo ships (it must never contain one).
+- **Asset substitution** — a content-addressed asset that loads without
+  matching its declared `sha256`, or a source URL that can bypass the
+  hash check or the `ATLAS_ALLOW_ASSET_DOWNLOAD` gate.
+- **Package escape** — a crafted `.atlas` whose extraction or load writes
+  outside its target directory (path traversal) or executes code during
+  *inspection* rather than sanctioned load.
+
 ## Reporting
 
 Please report suspected vulnerabilities privately via GitHub's **"Report a
@@ -22,5 +40,5 @@ vulnerability"** (Security → Advisories) on this repository, rather than openi
 public issue. Include a minimal reproduction. We aim to acknowledge within a few
 business days.
 
-This repository is the open protocol layer only; reports about the closed Atlas
-engine should not be filed here.
+This repository is the open protocol + SDK surface only; reports about the
+closed Atlas engine should not be filed here.

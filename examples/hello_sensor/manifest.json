@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "name": "hello_sensor",
+  "version": "0.1.0",
+  "description": "Minimal example plugin: echoes its input back with a summary.",
+  "entry_point": "wrapper.py",
+  "priority": 50,
+  "tags": [],
+  "runtime": "python",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "input": {
+        "type": "object",
+        "description": "TODO: describe this capability's input."
+      }
+    },
+    "required": [
+      "input"
+    ]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "result": {
+        "type": "object"
+      },
+      "summary": {
+        "type": "string"
+      }
+    }
+  }
+}

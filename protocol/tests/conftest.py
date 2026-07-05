@@ -1,0 +1,9 @@
+"""Allow `pytest protocol/tests` from a checkout without installing the package."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+_PROTOCOL = Path(__file__).resolve().parents[1]  # protocol/
+if str(_PROTOCOL) not in sys.path:
+    sys.path.insert(0, str(_PROTOCOL))

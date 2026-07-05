@@ -1,143 +1,92 @@
-# Atlas Protocol (ALP) — the Atlas SDK
+# Atlas SDK
 
-**The open contract for autonomous-lab software.** `atlas_protocol` is the single
-source of truth for how any capability — a tool, an oracle/model, a theorist, a
-physical instrument, a grader, or a brain — registers with an Atlas kernel and
-crosses the dispatch boundary. It is a small, dependency-light set of typed
-[pydantic](https://docs.pydantic.dev/) models plus a schema-hashing/compat layer.
+[![CI](https://github.com/AidanSYu/Atlas-SDK/actions/workflows/ci.yml/badge.svg)](https://github.com/AidanSYu/Atlas-SDK/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> This repository is the **open protocol layer**. The Atlas *engine* — the
-> verification-firewall implementation, the per-lab compounding ledger, and the
-> physical-instrument bridges — is a separate product and is **not** in this repo.
-> The protocol is open so the contract is auditable and anyone can build to it;
-> the engine is where the work happens.
+**Everything you need to build for [Atlas](https://github.com/AidanSYu) — the
+autonomous-lab framework — in one repo.** The Atlas SDK is two small Python
+packages with one job each:
 
-Licensed under **Apache-2.0**.
-
----
-
-## Why a protocol (and why open)
-
-A discovery system is only trustworthy if the rules by which a result *counts*
-are inspectable. ALP encodes those rules as types, not prose:
-
-- **Capability kinds are a closed set.** The kernel routes on six `CapabilityKind`s —
-  `tool`, `oracle`, `theorist`, `instrument`, `verifier`, `actuator`. Adding a
-  science, an instrument, or a grader is always a **new plugin**, never an edit to
-  a kernel file.
-- **The actor firewall.** Every event is stamped with an `Actor`. The cognition
-  brain (`Actor.ATLAS`) **never mints numbers and never actuates** — it phrases,
-  it does not measure. Numbers acquire ledger authority *only* through the
-  `Measurement` channel, authored by an `instrument`, a `researcher`, or a
-  `software` worker.
-- **Non-finite values can't enter the record.** `Measurement.value` rejects
-  `NaN`/`Inf` at the boundary — a malformed reading can never poison the ledger.
-- **Two channels, deliberately separated.** A `ToolResult` carries a `display`
-  (projected + redacted, the only thing a brain may see) and a full `record`
-  (ledger/UI only, never auto-fed back to a model). Sealed criterion targets stay
-  out of every prompt.
-- **Predicates travel with the capability.** Each `CapabilityDecl` carries `pre`
-  and `post` conditions as [JSONLogic](https://jsonlogic.com/) over its
-  input/output, enforced by the kernel — not buried in wrapper code.
-- **Goals are graded predicates, not a single scalar.** A `Goal` is a set of
-  `Criterion`s, each graded by a **named sealed verifier** returning a
-  `GradeResult` (`passed`, a continuous `score`, `applicable`, `confidence`).
-- **Transfer matches by meaning, not by spelling.** A `ProblemClass` carries
-  unit-aware `Axis`es and an embedding, so `temp_C` and `temperature` can match
-  for cross-campaign transfer. Nothing in the protocol reads a domain name.
-- **The brain is a socket.** A `ModelDescriptor` selects a backend explicitly —
-  Qwen today, your own local model tomorrow — the same seam. **The core never
-  selects a cloud model; offline is a protocol-level guarantee.**
-- **One source of truth for schemas.** `export_schemas()` emits Draft 2020-12 JSON
-  Schemas for every public model; `schema_hash()` + `compat.py` gate
-  backward-compatibility and stamp the exact contract a campaign ran against.
-
-## Install
+| Package | Import | You want to… | Docs |
+|---|---|---|---|
+| **`atlas-protocol`** — Atlas Protocol (ALP) | `atlas_protocol` | Depend on the open *contract*: typed capability manifests, the actor-firewall envelope, goals, transfer, and the signed `.atlas` container format | [`protocol/`](protocol/README.md) |
+| **`atlas-sdk`** — the developer toolkit | `atlas_sdk` | *Build and ship* a plugin: the `atlas` CLI scaffolds, validates, builds, signs, verifies, and conformance-tests `.atlas` packages | [`sdk/`](sdk/README.md) |
 
 ```bash
-pip install atlas-protocol          # from PyPI (once published)
-# or, from a checkout:
-pip install -e .
+pip install atlas-sdk        # the toolkit; pulls in atlas-protocol
+pip install atlas-protocol   # just the contract library (pydantic + cryptography)
 ```
 
-Requires Python ≥ 3.10 and pydantic v2. The only runtime dependency is pydantic.
+> The Atlas **engine** — the verification-firewall implementation, the per-lab
+> compounding ledger, and the physical-instrument bridges — is a separate,
+> closed product and is **not** in this repo. The protocol is open so the
+> contract is auditable and anyone can build to it.
 
-## Quickstart
+## The names, once and for all
 
-```python
-from atlas_protocol import (
-    CapabilityManifest, CapabilityDecl, CapabilityKind,
-    IoSchema, EffectDecl, Actor, Determinism,
-    export_schemas, manifest_io_hashes,
-)
+- **Atlas SDK** — this repository: the umbrella developer kit.
+- **Atlas Protocol (ALP)** — the open contract, shipped as the `atlas-protocol`
+  package. If a thing defines *what counts* (types, schemas, signatures, trust
+  levels), it lives here.
+- **`atlas-sdk`** — the toolkit package that ships the **`atlas`** CLI. If a
+  thing helps a *developer do* something (scaffold, build, sign, inspect), it
+  lives here. The CLI is a thin front-end: the one implementation of the format,
+  signing, trust store, and asset resolver lives in `atlas-protocol`, so a
+  package you build and one the runtime loads always agree.
+- **`.atlas`** — the signed, tamper-evident plugin container format defined by
+  the protocol (container format **v2**).
 
-manifest = CapabilityManifest(
-    id="org.example.hplc_qc",
-    version="0.1.0",
-    description="HPLC purity readout",
-    capabilities=[
-        CapabilityDecl(
-            name="measure_purity",
-            kind=CapabilityKind.INSTRUMENT,      # actuates/measures
-            actor=Actor.INSTRUMENT,              # authored by the device, not the brain
-            determinism=Determinism.EFFECTFUL,   # touches the world; never cached
-            io=IoSchema(
-                input_schema={"type": "object", "properties": {"sample_id": {"type": "string"}}},
-                output_schema={"type": "object", "properties": {"purity_pct": {"type": "number"}}},
-            ),
-            effects=EffectDecl(physical=True, reagent=True, irreversible=True),
-            # post-condition enforced by the kernel: purity must be in [0, 100]
-            post=[{"<=": [0, {"var": "purity_pct"}, 100]}],
-        )
-    ],
-)
+Three version axes, deliberately distinct:
 
-# The manifest validates on construction (extra fields forbidden, names linted).
-print(manifest.capability("measure_purity").kind)        # CapabilityKind.INSTRUMENT
-print(manifest_io_hashes(manifest))                       # per-capability io-schema hashes
-schemas = export_schemas()                                # Draft 2020-12 JSON Schemas
-```
+1. **Protocol version** (`PROTOCOL_VERSION`, currently **1.0**) — the wire/type
+   contract. Plugins declare the ALP they were authored against; kernels
+   negotiate `native` / `compat` / `refuse`.
+2. **Container format version** (currently **v2**) — the `.atlas` binary layout
+   (source bundle, Ed25519 signature block, content-addressed assets).
+3. **Package versions** (semver) — releases of the two distributions above.
 
-## Versioning & negotiation
-
-The protocol version (`PROTOCOL_VERSION`, currently `1.0`) is distinct from any
-plugin's own `version`. A plugin declares the ALP it was authored against; the
-kernel negotiates:
-
-- different **major** → `refuse` (structural incompatibility),
-- same major, **minor ≤ kernel** → `native`,
-- same major, **minor > kernel** → `compat` (forward-compat; unknown additive
-  fields preserved verbatim).
-
-```python
-from atlas_protocol import negotiate, ProtocolVersion
-negotiate(ProtocolVersion(major=1, minor=2), ProtocolVersion(major=1, minor=0)).mode  # "compat"
-```
-
-## Conformance
-
-The test suite is the executable conformance check:
+## Quickstart — ship a signed plugin in five commands
 
 ```bash
-pip install -e ".[dev]"
-pytest -q
+pip install atlas-sdk
+
+atlas init my_tool --runtime python     # scaffold manifest.json + wrapper.py
+atlas keygen -o my_publisher            # Ed25519 keypair (keep the .key secret)
+atlas build my_tool --sign my_publisher.key -o my_tool.atlas
+atlas verify my_tool.atlas              # signature + trust level
+atlas test my_tool                      # conformance suite
 ```
 
-## Status
+A runnable example lives in [`examples/hello_sensor/`](examples/hello_sensor) —
+CI builds, signs, verifies, and conformance-tests it on every push.
 
-`v0.1.0`, protocol `1.0`. The protocol is published as a **draft standard**:
-the shapes are stable and in production use, but minor fields may still be added
-before a `1.0` distribution release. Adding an enum *value* or a model *field* is
-a protocol change and is tracked in [`CHANGELOG.md`](CHANGELOG.md); adding a
-*plugin* never is.
+## Repository layout
+
+```
+protocol/          the atlas-protocol package (Atlas Protocol / ALP)
+  atlas_protocol/    typed models + .atlas packaging, signing, trust, assets, conformance
+  tests/             executable conformance suite for the contract
+sdk/               the atlas-sdk package (developer toolkit)
+  atlas_sdk/         the `atlas` CLI, manifest validation, scaffolding templates
+  tests/             end-to-end CLI tests (the README quickstart, executed)
+examples/          runnable example plugins
+```
+
+Develop from a checkout:
+
+```bash
+pip install -e "./protocol[dev]" -e ./sdk
+pytest protocol/tests sdk/tests
+```
 
 ## Security
 
-ALP is the contract for a system whose entire value rests on results being
-trustworthy. If you find a way the typed boundary could be bypassed — a path that
-lets the brain author a measurement, a non-finite value reaching the record, or a
-schema-hash collision — please see [`SECURITY.md`](SECURITY.md).
+The protocol is the contract for a system whose entire value rests on results
+being trustworthy: the actor firewall, non-finite rejection, sealed-target
+separation, Ed25519 signing, and the trust store are security surfaces. See
+[`SECURITY.md`](SECURITY.md) for the invariants we most want adversarial eyes
+on, and how to report privately.
 
 ## License
 
-[Apache-2.0](LICENSE). © 2026 Contineon
+[Apache-2.0](LICENSE). © 2026 Contineon.

@@ -66,6 +66,42 @@ from .schemas import (
 from .transfer import Axis, ProblemClass
 from .version import PROTOCOL_VERSION, Negotiation, ProtocolVersion, negotiate
 
+# .atlas container format + provenance (single source of truth for runtime + SDK).
+from .packaging import (
+    AtlasFormatError,
+    AtlasPackage,
+    collect_assets,
+    inspect_atlas,
+    load_atlas_module,
+    pack_atlas,
+    pack_plugin_directory,
+    read_atlas,
+    write_atlas,
+)
+from .signing import (
+    generate_keypair,
+    key_id,
+    load_private_key,
+    load_public_key,
+    make_signer,
+    sign_file,
+    verify_sigblock,
+)
+from .trust import (
+    add_trusted_publisher,
+    list_trusted,
+    resolve_trust_level,
+    revoke,
+    trust_dir,
+)
+from .assets import (
+    AssetRef,
+    AssetResolutionError,
+    manifest_asset_refs,
+    resolve_asset,
+    resolve_manifest_assets,
+)
+
 __all__ = [
     # version + negotiation
     "PROTOCOL_VERSION",
@@ -126,4 +162,33 @@ __all__ = [
     "is_backward_compatible",
     "Baseline",
     "CompatBreak",
+    # .atlas container format
+    "AtlasPackage",
+    "AtlasFormatError",
+    "pack_atlas",
+    "write_atlas",
+    "read_atlas",
+    "inspect_atlas",
+    "load_atlas_module",
+    "pack_plugin_directory",
+    "collect_assets",
+    # signing + trust
+    "generate_keypair",
+    "key_id",
+    "make_signer",
+    "sign_file",
+    "verify_sigblock",
+    "load_private_key",
+    "load_public_key",
+    "resolve_trust_level",
+    "add_trusted_publisher",
+    "list_trusted",
+    "revoke",
+    "trust_dir",
+    # content-addressed assets
+    "AssetRef",
+    "AssetResolutionError",
+    "resolve_asset",
+    "resolve_manifest_assets",
+    "manifest_asset_refs",
 ]

@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "atlas-sdk"
+version = "1.0.0"
+description = "Atlas SDK toolkit — the `atlas` CLI for building, signing, and verifying .atlas plugin packages"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Contineon" },
+]
+keywords = ["atlas", "plugin", "capability", "sdk", "signing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    "atlas-protocol>=1.0.0,<2",
+    "cryptography>=42.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+atlas = "atlas_sdk.cli:main"
+atlas-sdk = "atlas_sdk.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AidanSYu/Atlas-SDK"
+Repository = "https://github.com/AidanSYu/Atlas-SDK"
+Issues = "https://github.com/AidanSYu/Atlas-SDK/issues"
+Changelog = "https://github.com/AidanSYu/Atlas-SDK/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["atlas_sdk"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
