@@ -29,7 +29,7 @@ from .version import PROTOCOL_VERSION, ProtocolVersion
 # Reverse-DNS package id, e.g. "org.atlas.proposer.botorch". Lowercase, dotted.
 _ID_PATTERN = r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
 # Tool-bus capability name, e.g. "propose_experiment". Lowercase snake; the
-# regex structurally forbids domain-leak names like "SMILES" or "IC50".
+# regex structurally forbids domain-leak names like "SMILES" or "X50".
 _NAME_PATTERN = r"^[a-z][a-z0-9_]{2,63}$"
 # SemVer (major.minor.patch, no leading zeros, optional pre-release/build).
 _SEMVER_PATTERN = r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)([-+].+)?$"

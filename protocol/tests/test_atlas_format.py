@@ -27,6 +27,10 @@ from atlas_protocol.packaging import (
 
 _MANIFEST = {"name": "demo_tool", "version": "0.1.0", "description": "d", "entry_point": "wrapper.py"}
 _SOURCE = "def invoke(a, c=None):\n    return {'ok': True, 'echo': a}\nPLUGIN = invoke\n"
+# Throwaway passphrase used only to encrypt a temp package inside these tests and
+# decrypt it in the same test. It protects nothing and grants access to nowhere —
+# named so secret scanners don't mistake it for a real credential.
+_TEST_PASSPHRASE = "test-passphrase"
 
 
 def _write(tmp_path, **kw):
@@ -47,7 +51,7 @@ def test_pack_read_roundtrip_plaintext(tmp_path):
 
 
 def test_manifest_is_cleartext_without_key(tmp_path):
-    path = _write(tmp_path, passphrase="s3cret")
+    path = _write(tmp_path, passphrase=_TEST_PASSPHRASE)
     # inspect never decrypts — manifest must still be readable
     info = inspect_atlas(path)
     assert info["manifest"]["name"] == "demo_tool"
@@ -55,12 +59,12 @@ def test_manifest_is_cleartext_without_key(tmp_path):
 
 
 def test_encrypted_roundtrip_requires_key(tmp_path):
-    path = _write(tmp_path, passphrase="s3cret")
+    path = _write(tmp_path, passphrase=_TEST_PASSPHRASE)
     with pytest.raises(AtlasFormatError, match="encrypted"):
         read_atlas(path)                       # no passphrase
     with pytest.raises(AtlasFormatError):
         read_atlas(path, passphrase="wrong")   # wrong key → GCM tag fails
-    pkg = read_atlas(path, passphrase="s3cret")
+    pkg = read_atlas(path, passphrase=_TEST_PASSPHRASE)
     assert pkg.payload_bytes[:2] == b"PK"
 
 
